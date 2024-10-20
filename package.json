@@ -1,0 +1,21 @@
+{
+  "name": "odin-calculator",
+  "version": "1.0.0",
+  "description": "Foundation course - calculator project",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taerimyeon/odin-calculator.git"
+  },
+  "author": "Steven Jonathan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/taerimyeon/odin-calculator/issues"
+  },
+  "homepage": "https://github.com/taerimyeon/odin-calculator#readme",
+  "dependencies": {
+    "jest": "^29.7.0"
+  }
+}
