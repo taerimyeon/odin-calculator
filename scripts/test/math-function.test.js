@@ -80,3 +80,24 @@ describe('Divide two numbers', () => {
     expect(mathFunction.divide(9, [90, 1])).toEqual('ERROR');
   });
 });
+
+describe('Find percentage of a number', () => {
+  test('Basic percentage result, and rounds to two decimal points max', () => {
+    expect(mathFunction.percent(2)).toEqual(0.02);
+  });
+  test('Works with zero', () => {
+    expect(mathFunction.percent(0)).toEqual(0);
+  });
+  test('Works with negative number', () => {
+    expect(mathFunction.percent(-4)).toEqual(-0.04);
+  });
+  test('Works with decimal number, and rounds to two decimal points max', () => {
+    expect(mathFunction.percent(1.15)).toEqual(0.01);
+  });
+  test('Returns ERROR with non-number parameters', () => {
+    expect(mathFunction.percent("A")).toEqual('ERROR');
+  });
+  test('Returns ERROR with non-number parameters', () => {
+    expect(mathFunction.percent([1, 2])).toEqual('ERROR');
+  });
+});

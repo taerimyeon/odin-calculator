@@ -33,9 +33,18 @@ function divide(firstNumber, secondNumber) {
   }
 }
 
+function percent(number) {
+  if (typeof(number) !== "number") {
+    return "ERROR";
+  } else {
+    return Math.round((number / 100) * 100) / 100;
+  }
+}
+
 module.exports = {
   add,
   subtract,
   multiply,
-  divide
+  divide,
+  percent
 }
