@@ -24,11 +24,13 @@ html {
 }
 
 .result-container {
+	overflow: hidden;
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 	margin: 12px 0px;
 	height: 72px;
+	width: 312px;
 	color: #FFFFFF;
 	font-size: 62px;
 }
@@ -72,4 +74,16 @@ html {
 .special-operator {
 	background-color: #9C9C9C;
 	color: #FFFFFF;
+}
+
+.clicked {
+	background-color: #9C9C9C;
+}
+
+.operator-clicked {
+	background-color: #F7C784;
+}
+
+.special-operator-clicked {
+	background-color: #D6D6D6;
 }
