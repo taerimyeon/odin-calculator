@@ -1,6 +1,10 @@
-let firstNumbers = ["0"];
-let secondNumbers = ["0"];
-let operator = "";
+let calculatorObject = {
+  firstNumbers: [],
+  secondNumbers: [],
+  operator: "", // "add", "subtract", "multiply", "divide", "operate" (equal sign)
+  displayCharacters: []
+}
+let pushTo = "firstNumbers"; // Helper variable to determine where to push upon operator button click
 let buttonClearComponent;
 let numberDisplayContainer;
 let startTime; // Helps calculate button hold duration: (endTime - startTime) > 0.5s?
@@ -14,68 +18,76 @@ function keyPress(event) {
   }, 100);
   switch (clickedButtonId) {
     case "decimal":
-      if (decimalPointExist()) firstNumbers.push(".");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      if (isDecimalPointExist()) {
+        if (calculatorObject[pushTo].length === 0) {
+          // Put leading zero if array is empty
+          calculatorObject[pushTo].push("0");
+          calculatorObject[pushTo].push(".");
+        } else {
+          calculatorObject[pushTo].push(".");
+        }
+      }
+      updateCalculatorDisplay();
       break;
     case "zero":
-      if (decimalPointExist()) {
-        if (firstNumbers[0] !== "0") firstNumbers.push("0");
+      if (isDecimalPointExist()) {
+        if (calculatorObject[pushTo][0] !== "0") calculatorObject[pushTo].push("0");
       } else {
-        firstNumbers.push("0");
+        calculatorObject[pushTo].push("0");
       }
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      updateCalculatorDisplay();
       break;
     case "one":
-      if (firstNumbers.length > 0 && decimalPointExist() && firstNumbers[0] === "0") firstNumbers.pop();
-      firstNumbers.push("1");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      removeLeadingZeroFromNonZeroNumbers();
+      calculatorObject[pushTo].push("1");
+      updateCalculatorDisplay();
       break;
     case "two":
-      if (firstNumbers.length > 0 && decimalPointExist() && firstNumbers[0] === "0") firstNumbers.pop();
-      firstNumbers.push("2");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      removeLeadingZeroFromNonZeroNumbers();
+      calculatorObject[pushTo].push("2");
+      updateCalculatorDisplay();
       break;
     case "three":
-      if (firstNumbers.length > 0 && decimalPointExist() && firstNumbers[0] === "0") firstNumbers.pop();
-      firstNumbers.push("3");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      removeLeadingZeroFromNonZeroNumbers();
+      calculatorObject[pushTo].push("3");
+      updateCalculatorDisplay();
       break;
     case "four":
-      if (firstNumbers.length > 0 && decimalPointExist() && firstNumbers[0] === "0") firstNumbers.pop();
-      firstNumbers.push("4");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      removeLeadingZeroFromNonZeroNumbers();
+      calculatorObject[pushTo].push("4");
+      updateCalculatorDisplay();
       break;
     case "five":
-      if (firstNumbers.length > 0 && decimalPointExist() && firstNumbers[0] === "0") firstNumbers.pop();
-      firstNumbers.push("5");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      removeLeadingZeroFromNonZeroNumbers();
+      calculatorObject[pushTo].push("5");
+      updateCalculatorDisplay();
       break;
     case "six":
-      if (firstNumbers.length > 0 && decimalPointExist() && firstNumbers[0] === "0") firstNumbers.pop();
-      firstNumbers.push("6");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      removeLeadingZeroFromNonZeroNumbers();
+      calculatorObject[pushTo].push("6");
+      updateCalculatorDisplay();
       break;
     case "seven":
-      if (firstNumbers.length > 0 && decimalPointExist() && firstNumbers[0] === "0") firstNumbers.pop();
-      firstNumbers.push("7");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      removeLeadingZeroFromNonZeroNumbers();
+      calculatorObject[pushTo].push("7");
+      updateCalculatorDisplay();
       break;
     case "eight":
-      if (firstNumbers.length > 0 && decimalPointExist() && firstNumbers[0] === "0") firstNumbers.pop();
-      firstNumbers.push("8");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      removeLeadingZeroFromNonZeroNumbers();
+      calculatorObject[pushTo].push("8");
+      updateCalculatorDisplay();
       break;
     case "nine":
-      if (firstNumbers.length > 0 && decimalPointExist() && firstNumbers[0] === "0") firstNumbers.pop();
-      firstNumbers.push("9");
-      numberDisplayContainer.textContent = firstNumbers.join("")
+      removeLeadingZeroFromNonZeroNumbers();
+      calculatorObject[pushTo].push("9");
+      updateCalculatorDisplay();
       break;
     default:
       console.log("Unknown button ID")
       break;
   }
-  if (decimalPointExist()) {
-    if (firstNumbers[0] !== "0") buttonClearComponent.textContent = "\u232B";
+  if (isDecimalPointExist()) {
+    if (calculatorObject[pushTo][0] !== "0") buttonClearComponent.textContent = "\u232B";
   } else {
     buttonClearComponent.textContent = "\u232B";
   }
@@ -90,12 +102,12 @@ function specialKeyPress(event) {
   }, 100);
   switch (clickedButtonId) {
     case "clear":
-      if (firstNumbers.length > 1) {
-        firstNumbers.splice(-1);
-        if (firstNumbers.length === 1 && firstNumbers[0] === "0") {
+      if (calculatorObject[pushTo].length > 1) {
+        calculatorObject[pushTo].splice(-1);
+        if (calculatorObject[pushTo].length === 1 && calculatorObject[pushTo][0] === "0") {
           reinitializeVariables();
         } else {
-          numberDisplayContainer.textContent = firstNumbers.join("")
+          updateCalculatorDisplay();
         }
       } else {
         reinitializeVariables();
@@ -108,42 +120,59 @@ function specialKeyPress(event) {
 }
 
 function reinitializeVariables() {
-  firstNumbers = ["0"];
-  secondNumbers = ["0"];
+  pushTo = "firstNumbers";
+  calculatorObject["firstNumbers"] = [];
+  calculatorObject["secondNumbers"] = [];
+  calculatorObject["operator"] = "";
+  calculatorObject["displayCharacters"] = [];
   buttonClearComponent.textContent = "AC";
-  numberDisplayContainer.textContent = 0;
+  numberDisplayContainer.textContent = "0";
 }
 
-function decimalPointExist() {
-  return firstNumbers.filter(item => item === ".").length === 0
+function isDecimalPointExist() {
+  return calculatorObject[pushTo].filter(item => item === ".").length === 0;
+}
+
+function removeLeadingZeroFromNonZeroNumbers() {
+  if (
+    calculatorObject[pushTo].length > 0 &&
+    isDecimalPointExist() &&
+    calculatorObject[pushTo][0] === "0"
+  ) {
+    calculatorObject[pushTo].pop();
+  }
+}
+
+function updateCalculatorDisplay() {
+  numberDisplayContainer.textContent = calculatorObject[pushTo].join("");
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  const buttonDecimal = document.getElementById("button-decimal");
-  const buttonZero = document.getElementById("button-zero");
-  const buttonOne = document.getElementById("button-one");
-  const buttonTwo = document.getElementById("button-two");
-  const buttonThree = document.getElementById("button-three");
-  const buttonFour = document.getElementById("button-four");
-  const buttonFive = document.getElementById("button-five");
-  const buttonSix = document.getElementById("button-six");
-  const buttonSeven = document.getElementById("button-seven");
-  const buttonEight = document.getElementById("button-eight");
-  const buttonNine = document.getElementById("button-nine");
+  const buttonDecimalComponent = document.getElementById("button-decimal");
+  const buttonZeroComponent = document.getElementById("button-zero");
+  const buttonOneComponent = document.getElementById("button-one");
+  const buttonTwoComponent = document.getElementById("button-two");
+  const buttonThreeComponent = document.getElementById("button-three");
+  const buttonFourComponent = document.getElementById("button-four");
+  const buttonFiveComponent = document.getElementById("button-five");
+  const buttonSixComponent = document.getElementById("button-six");
+  const buttonSevenComponent = document.getElementById("button-seven");
+  const buttonEightComponent = document.getElementById("button-eight");
+  const buttonNineComponent = document.getElementById("button-nine");
   buttonClearComponent = document.getElementById("button-clear");
   numberDisplayContainer = document.getElementById("result");
   
-  buttonDecimal.addEventListener("click", keyPress);
-  buttonZero.addEventListener("click", keyPress);
-  buttonOne.addEventListener("click", keyPress);
-  buttonTwo.addEventListener("click", keyPress);
-  buttonThree.addEventListener("click", keyPress);
-  buttonFour.addEventListener("click", keyPress);
-  buttonFive.addEventListener("click", keyPress);
-  buttonSix.addEventListener("click", keyPress);
-  buttonSeven.addEventListener("click", keyPress);
-  buttonEight.addEventListener("click", keyPress);
-  buttonNine.addEventListener("click", keyPress);
+  buttonDecimalComponent.addEventListener("click", keyPress);
+  buttonZeroComponent.addEventListener("click", keyPress);
+  buttonOneComponent.addEventListener("click", keyPress);
+  buttonTwoComponent.addEventListener("click", keyPress);
+  buttonThreeComponent.addEventListener("click", keyPress);
+  buttonFourComponent.addEventListener("click", keyPress);
+  buttonFiveComponent.addEventListener("click", keyPress);
+  buttonSixComponent.addEventListener("click", keyPress);
+  buttonSevenComponent.addEventListener("click", keyPress);
+  buttonEightComponent.addEventListener("click", keyPress);
+  buttonNineComponent.addEventListener("click", keyPress);
   buttonClearComponent.addEventListener("click", specialKeyPress);
   buttonClearComponent.addEventListener("mousedown", (event) => {
     startTime = new Date();
@@ -151,7 +180,7 @@ document.addEventListener("DOMContentLoaded", function() {
   buttonClearComponent.addEventListener("mouseup", () => {
     const endTime = new Date();
     const timeDifference = (endTime - startTime) / 1000;
-    if (timeDifference > 0.5 && firstNumbers.length !== 0) {
+    if (timeDifference > 0.5 && calculatorObject[pushTo].length !== 0) {
       reinitializeVariables();
     }
   });
