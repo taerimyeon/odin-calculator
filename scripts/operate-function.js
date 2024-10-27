@@ -173,7 +173,7 @@ function reinitializeVariables() {
   calculatorObject.firstNumbers = [];
   calculatorObject.secondNumbers = [];
   calculatorObject.operator = "";
-  calculatorObject.displayCharacters = [];
+  calculatorObject.displayCharacters = "";
   buttonClearComponent.textContent = "AC";
   numberDisplayContainer.textContent = "0";
 }
