@@ -2,7 +2,7 @@ let calculatorObject = {
   firstNumbers: [],
   secondNumbers: [],
   operator: "", // "add", "subtract", "multiply", "divide", "operate" (equal sign)
-  displayCharacters: []
+  displayCharacters: ""
 }
 let pushTo = "firstNumbers"; // Helper variable to determine where to push upon operator button click
 let buttonClearComponent;
@@ -83,13 +83,51 @@ function keyPress(event) {
       updateCalculatorDisplay();
       break;
     default:
-      console.log("Unknown button ID")
+      console.log("Unknown button ID");
       break;
   }
   if (isDecimalPointExist()) {
     if (calculatorObject[pushTo][0] !== "0") buttonClearComponent.textContent = "\u232B";
   } else {
     buttonClearComponent.textContent = "\u232B";
+  }
+}
+
+function operatorKeyPress(event) {
+  const clickedButton = event.target;
+  const clickedButtonId = event.target.id.split("-")[1];
+  clickedButton.classList.add("operator-clicked");
+  setTimeout(() => {
+    clickedButton.classList.remove("operator-clicked");
+  }, 100);
+  switch (clickedButtonId) {
+    case "add":
+      addLeadingZeroOnOperatorKeyPress();
+      togglePushTo();
+      calculatorObject.operator = "add";
+      updateCalculatorDisplay();
+      break;
+    case "subtract":
+      addLeadingZeroOnOperatorKeyPress();
+      togglePushTo();
+      calculatorObject.operator = "subtract";
+      updateCalculatorDisplay();
+      break;
+    case "multiply":
+      addLeadingZeroOnOperatorKeyPress();
+      togglePushTo();
+      calculatorObject.operator = "multiply";
+      updateCalculatorDisplay();
+      break;
+    case "divide":
+      addLeadingZeroOnOperatorKeyPress();
+      togglePushTo();
+      calculatorObject.operator = "divide";
+      updateCalculatorDisplay();
+      break;
+    default:
+      console.log("Unknown button ID");
+      break;
   }
 }
 
@@ -102,35 +140,54 @@ function specialKeyPress(event) {
   }, 100);
   switch (clickedButtonId) {
     case "clear":
-      if (calculatorObject[pushTo].length > 1) {
+      if (calculatorObject[pushTo].length > 0) {
         calculatorObject[pushTo].splice(-1);
-        if (calculatorObject[pushTo].length === 1 && calculatorObject[pushTo][0] === "0") {
-          reinitializeVariables();
-        } else {
+        updateCalculatorDisplay();
+      } else {
+        if (
+          pushTo === "secondNumbers" &&
+          calculatorObject.secondNumbers.length === 0
+        ) {
+          calculatorObject.operator = "";
+          pushTo = "firstNumbers";
           updateCalculatorDisplay();
         }
-      } else {
+      }
+      if (
+        calculatorObject.firstNumbers.length === 0 &&
+        calculatorObject.secondNumbers.length === 0
+      ) {
         reinitializeVariables();
       }
       break;
+    case "plus_minus":
+      break;
     default:
-      console.log("Unknown button ID")
+      console.log("Unknown button ID");
       break;
   }
 }
 
 function reinitializeVariables() {
   pushTo = "firstNumbers";
-  calculatorObject["firstNumbers"] = [];
-  calculatorObject["secondNumbers"] = [];
-  calculatorObject["operator"] = "";
-  calculatorObject["displayCharacters"] = [];
+  calculatorObject.firstNumbers = [];
+  calculatorObject.secondNumbers = [];
+  calculatorObject.operator = "";
+  calculatorObject.displayCharacters = [];
   buttonClearComponent.textContent = "AC";
   numberDisplayContainer.textContent = "0";
 }
 
+function togglePushTo() {
+  pushTo === "firstNumbers" ? pushTo = "secondNumbers" : pushTo = "firstNumbers";
+}
+
 function isDecimalPointExist() {
   return calculatorObject[pushTo].filter(item => item === ".").length === 0;
+}
+
+function addLeadingZeroOnOperatorKeyPress() {
+  if (calculatorObject.firstNumbers.length === 0) calculatorObject.firstNumbers.push("0");
 }
 
 function removeLeadingZeroFromNonZeroNumbers() {
@@ -143,8 +200,39 @@ function removeLeadingZeroFromNonZeroNumbers() {
   }
 }
 
+function reduceArray(whichArray) {
+  return calculatorObject[whichArray].reduce((accumulator, currentValue) => accumulator + currentValue, "")
+}
+
 function updateCalculatorDisplay() {
-  numberDisplayContainer.textContent = calculatorObject[pushTo].join("");
+  // Store the display history first...
+  if (calculatorObject.operator !== "") {
+    switch(calculatorObject.operator) {
+      case "add":
+        calculatorObject.displayCharacters = `${reduceArray("firstNumbers")}+`;
+        break;
+      case "subtract":
+        calculatorObject.displayCharacters = `${reduceArray("firstNumbers")}-`;
+        break;
+      case "multiply":
+        calculatorObject.displayCharacters = `${reduceArray("firstNumbers")}x`;
+        break;
+      case "divide":
+        calculatorObject.displayCharacters = `${reduceArray("firstNumbers")}/`;
+        break;
+    }
+  } else {
+    calculatorObject.displayCharacters = reduceArray("firstNumbers");
+  }
+  if (
+    pushTo === "secondNumbers" &&
+    calculatorObject.secondNumbers.length !== 0
+  ) {
+    calculatorObject.displayCharacters = `${calculatorObject.displayCharacters}${reduceArray("secondNumbers")}`;
+  }
+
+  // Then update the display
+  numberDisplayContainer.textContent = calculatorObject.displayCharacters;
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -159,6 +247,12 @@ document.addEventListener("DOMContentLoaded", function() {
   const buttonSevenComponent = document.getElementById("button-seven");
   const buttonEightComponent = document.getElementById("button-eight");
   const buttonNineComponent = document.getElementById("button-nine");
+  const buttonAddComponent = document.getElementById("button-add");
+  const buttonSubtractComponent = document.getElementById("button-subtract");
+  const buttonMultiplyComponent = document.getElementById("button-multiply");
+  const buttonDivideComponent = document.getElementById("button-divide");
+  const buttonOperateComponent = document.getElementById("button-operate");
+  const buttonPlusMinusComponent = document.getElementById("button-plus_minus");
   buttonClearComponent = document.getElementById("button-clear");
   numberDisplayContainer = document.getElementById("result");
   
@@ -173,6 +267,12 @@ document.addEventListener("DOMContentLoaded", function() {
   buttonSevenComponent.addEventListener("click", keyPress);
   buttonEightComponent.addEventListener("click", keyPress);
   buttonNineComponent.addEventListener("click", keyPress);
+  buttonAddComponent.addEventListener("click", operatorKeyPress);
+  buttonSubtractComponent.addEventListener("click", operatorKeyPress);
+  buttonMultiplyComponent.addEventListener("click", operatorKeyPress);
+  buttonDivideComponent.addEventListener("click", operatorKeyPress);
+  buttonOperateComponent.addEventListener("click", operatorKeyPress);
+  buttonPlusMinusComponent.addEventListener("click", specialKeyPress);
   buttonClearComponent.addEventListener("click", specialKeyPress);
   buttonClearComponent.addEventListener("mousedown", (event) => {
     startTime = new Date();
