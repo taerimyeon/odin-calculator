@@ -265,10 +265,6 @@ function specialKeyPress(event) {
               updateCalculatorDisplay();
             }
           }
-          // else {
-          //   calculatorObject[pushTo].unshift("-");
-          //   updateCalculatorDisplay();
-          // }
         }
       }
       break;
