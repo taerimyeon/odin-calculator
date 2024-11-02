@@ -3,7 +3,8 @@ The Odin Project: Calculator project repository
 
 # How to Use
 ## Calculation
-This calculator can only calculate two numbers at a time. If the user does not press on `=` button to get the result, pressing another operator will take the result from previous calculation to the next. Thus, chaining the calculation process.
+This calculator can only calculate two numbers at a time. If the user does not press on `=` button to get the result, pressing another operator will take the result from previous calculation to the next. Thus, chaining the calculation process.  
+Users can choose to click on buttons or typing with keyboard when on desktop. To get the same function as pressing `=` button, users can either use `=` or `Enter` keys. As for `±` button, users need to use underscore (by holding `Shift` and followed by `-` keypress). As for `%` button, users need to hold `Shift` and followed by `5` keypress. As for `⌫` button, users need to press `Backspace` key.  
 - Single calculation  
 [<img src="./docs/images/Calculate_single.gif" alt="single_calculation" width="240"/>](./docs/images/Calculate_single.gif)
 - Chaining calculation  

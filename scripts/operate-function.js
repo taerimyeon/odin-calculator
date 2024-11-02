@@ -12,18 +12,33 @@ let divideByZeroError = false; // Helper variable to determine if there is a div
 let finishCalculation = false; // Helper variable to determine if equal sign (=) button is pressed
 
 function keyPress(event) {
+  const clickedButton = event.target;
+  const clickedButtonId = event.target.id.split("-")[1];
+  highlightKeyPress(clickedButton);
+  switchCaseKeyPress(clickedButtonId);
+}
+
+function operatorKeyPress(event) {
+  const clickedButton = event.target;
+  const clickedButtonId = event.target.id.split("-")[1];
+  highlightKeyPress(clickedButton);
+  switchCaseOperatorKeyPress(clickedButtonId);
+}
+
+function specialKeyPress(event) {
+  const clickedButton = event.target;
+  const clickedButtonId = event.target.id.split("-")[1];
+  highlightKeyPress(clickedButton);
+  switchCaseSpecialKeyPress(clickedButtonId);
+}
+
+function switchCaseKeyPress(clickedButtonId) {
   if (
     divideByZeroError ||
     finishCalculation
   ) {
     reinitializeVariables();
   }
-  const clickedButton = event.target;
-  const clickedButtonId = event.target.id.split("-")[1];
-  clickedButton.classList.add("clicked");
-  setTimeout(() => {
-    clickedButton.classList.remove("clicked");
-  }, 100);
   switch (clickedButtonId) {
     case "decimal":
       if (!divideByZeroError) {
@@ -103,15 +118,9 @@ function keyPress(event) {
   }
 }
 
-function operatorKeyPress(event) {
-  const clickedButton = event.target;
-  const clickedButtonId = event.target.id.split("-")[1];
+function switchCaseOperatorKeyPress(clickedButtonId) {
   let firstNumber;
   let secondNumber;
-  clickedButton.classList.add("operator-clicked");
-  setTimeout(() => {
-    clickedButton.classList.remove("operator-clicked");
-  }, 100);
   switch (clickedButtonId) {
     case "add":
       if (!divideByZeroError) {
@@ -205,13 +214,7 @@ function operatorKeyPress(event) {
   }
 }
 
-function specialKeyPress(event) {
-  const clickedButton = event.target;
-  const clickedButtonId = event.target.id.split("-")[1];
-  clickedButton.classList.add("special-operator-clicked");
-  setTimeout(() => {
-    clickedButton.classList.remove("special-operator-clicked");
-  }, 100);
+function switchCaseSpecialKeyPress(clickedButtonId) {
   switch (clickedButtonId) {
     case "clear":
       if (!divideByZeroError) {
@@ -282,6 +285,13 @@ function specialKeyPress(event) {
       console.log("Unknown button ID");
       break;
   }
+}
+
+function highlightKeyPress(buttonComponent) {
+  buttonComponent.classList.add("clicked");
+  setTimeout(() => {
+    buttonComponent.classList.remove("clicked");
+  }, 100);
 }
 
 function reinitializeVariables() {
@@ -495,4 +505,70 @@ document.addEventListener("DOMContentLoaded", function() {
       reinitializeVariables();
     }
   });
+  document.addEventListener("keydown", function(event) {
+    // Put combined keypresses first to prevent undesired behavior
+    if (event.shiftKey && event.code === "Equal") {
+      highlightKeyPress(buttonAddComponent);
+      switchCaseOperatorKeyPress("add");
+    } else if (event.shiftKey && event.code === "Digit8") {
+      highlightKeyPress(buttonMultiplyComponent);
+      switchCaseOperatorKeyPress("multiply");
+    } else if (event.shiftKey && event.code === "Digit5") {
+      highlightKeyPress(buttonPercentComponent);
+      switchCaseSpecialKeyPress("percent");
+    } else if (event.shiftKey && event.code === "Minus") {
+      highlightKeyPress(buttonPlusMinusComponent);
+      switchCaseSpecialKeyPress("plus_minus");
+    } else if (event.code === "Digit1") {
+      highlightKeyPress(buttonOneComponent);
+      switchCaseKeyPress("one");
+    } else if (event.code === "Digit2") {
+      highlightKeyPress(buttonTwoComponent);
+      switchCaseKeyPress("two");
+    } else if (event.code === "Digit3") {
+      highlightKeyPress(buttonThreeComponent);
+      switchCaseKeyPress("three")
+    } else if (event.code === "Digit4") {
+      highlightKeyPress(buttonFourComponent);
+      switchCaseKeyPress("four");
+    } else if (event.code === "Digit5") {
+      highlightKeyPress(buttonFiveComponent);
+      switchCaseKeyPress("five");
+    } else if (event.code === "Digit6") {
+      highlightKeyPress(buttonSixComponent);
+      switchCaseKeyPress("six");
+    } else if (event.code === "Digit7") {
+      highlightKeyPress(buttonSevenComponent);
+      switchCaseKeyPress("seven");
+    } else if (event.code === "Digit8") {
+      highlightKeyPress(buttonEightComponent);
+      switchCaseKeyPress("eight");
+    } else if (event.code === "Digit9") {
+      highlightKeyPress(buttonNineComponent);
+      switchCaseKeyPress("nine");
+    } else if (event.code === "Digit0") {
+      highlightKeyPress(buttonZeroComponent);
+      switchCaseKeyPress("zero");
+    } else if (event.code === "Period") {
+      highlightKeyPress(buttonDecimalComponent);
+      switchCaseKeyPress("decimal");
+    } else if (event.code === "Minus") {
+      highlightKeyPress(buttonSubtractComponent);
+      switchCaseOperatorKeyPress("subtract");
+    }  else if (event.code === "Slash") {
+      highlightKeyPress(buttonDivideComponent);
+      switchCaseOperatorKeyPress("divide");
+    } else if (event.code === "Equal") {
+      highlightKeyPress(buttonOperateComponent);
+      switchCaseOperatorKeyPress("operate");
+    } else if (event.code === "Enter") {
+      highlightKeyPress(buttonOperateComponent);
+      switchCaseOperatorKeyPress("operate");
+    } else if (event.code === "Backspace") {
+      highlightKeyPress(buttonClearComponent);
+      switchCaseSpecialKeyPress("clear");
+    } else {
+      console.log("Unsupported key")
+    }
+  })
 });
