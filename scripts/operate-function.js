@@ -10,6 +10,7 @@ let numberDisplayContainer;
 let startTime; // Helps calculate button hold duration: (endTime - startTime) > 0.5s?
 let divideByZeroError = false; // Helper variable to determine if there is a division by zero
 let finishCalculation = false; // Helper variable to determine if equal sign (=) button is pressed
+let calculated = false; // Helper variable to determine if the calculation between firstNumbers and secondNumber has been done or not
 
 function keyPress(event) {
   const clickedButton = event.target;
@@ -126,8 +127,8 @@ function switchCaseOperatorKeyPress(clickedButtonId) {
       if (!divideByZeroError) {
         addLeadingZeroOnOperatorKeyPress();
         if (calculatorObject.secondNumbers.length !== 0) {
-          firstNumber = parseFloat(reduceArray("firstNumbers"));
-          secondNumber = parseFloat(reduceArray("secondNumbers"));
+          firstNumber = parseFloat(reduceArray(calculatorObject.firstNumbers));
+          secondNumber = parseFloat(reduceArray(calculatorObject.secondNumbers));
           operate(calculatorObject.operator, firstNumber, secondNumber);
         }
         calculatorObject.operator = "add";
@@ -142,8 +143,8 @@ function switchCaseOperatorKeyPress(clickedButtonId) {
       if (!divideByZeroError) {
         addLeadingZeroOnOperatorKeyPress();
         if (calculatorObject.secondNumbers.length !== 0) {
-          firstNumber = parseFloat(reduceArray("firstNumbers"));
-          secondNumber = parseFloat(reduceArray("secondNumbers"));
+          firstNumber = parseFloat(reduceArray(calculatorObject.firstNumbers));
+          secondNumber = parseFloat(reduceArray(calculatorObject.secondNumbers));
           operate(calculatorObject.operator, firstNumber, secondNumber);
         }
         calculatorObject.operator = "subtract";
@@ -158,8 +159,8 @@ function switchCaseOperatorKeyPress(clickedButtonId) {
       if (!divideByZeroError) {
         addLeadingZeroOnOperatorKeyPress();
         if (calculatorObject.secondNumbers.length !== 0) {
-          firstNumber = parseFloat(reduceArray("firstNumbers"));
-          secondNumber = parseFloat(reduceArray("secondNumbers"));
+          firstNumber = parseFloat(reduceArray(calculatorObject.firstNumbers));
+          secondNumber = parseFloat(reduceArray(calculatorObject.secondNumbers));
           operate(calculatorObject.operator, firstNumber, secondNumber);
         }
         calculatorObject.operator = "multiply";
@@ -174,8 +175,8 @@ function switchCaseOperatorKeyPress(clickedButtonId) {
       if (!divideByZeroError) {
         addLeadingZeroOnOperatorKeyPress();
         if (calculatorObject.secondNumbers.length !== 0) {
-          firstNumber = parseFloat(reduceArray("firstNumbers"));
-          secondNumber = parseFloat(reduceArray("secondNumbers"));
+          firstNumber = parseFloat(reduceArray(calculatorObject.firstNumbers));
+          secondNumber = parseFloat(reduceArray(calculatorObject.secondNumbers));
           operate(calculatorObject.operator, firstNumber, secondNumber);
         }
         calculatorObject.operator = "divide";
@@ -190,8 +191,8 @@ function switchCaseOperatorKeyPress(clickedButtonId) {
       if (!divideByZeroError) {
         addLeadingZeroOnOperatorKeyPress();
         if (calculatorObject.secondNumbers.length !== 0) {
-          firstNumber = parseFloat(reduceArray("firstNumbers"));
-          secondNumber = parseFloat(reduceArray("secondNumbers"));
+          firstNumber = parseFloat(reduceArray(calculatorObject.firstNumbers));
+          secondNumber = parseFloat(reduceArray(calculatorObject.secondNumbers));
           operate(calculatorObject.operator, firstNumber, secondNumber);
           calculatorObject.operator = "";
           finishCalculation = true;
@@ -274,7 +275,10 @@ function switchCaseSpecialKeyPress(clickedButtonId) {
     case "percent":
       if (!divideByZeroError) {
         if (calculatorObject[pushTo].length > 0) {
-          calculatorObject[pushTo] = percent(parseFloat(reduceArray(pushTo)))
+          calculatorObject[pushTo] = percent(
+            parseFloat(
+              reduceArray(calculatorObject[pushTo]
+            )))
             .toString()
             .split("");
           updateCalculatorDisplay();
@@ -297,6 +301,7 @@ function highlightKeyPress(buttonComponent) {
 function reinitializeVariables() {
   divideByZeroError = false;
   finishCalculation = false;
+  calculated = false;
   pushTo = "firstNumbers";
   calculatorObject.firstNumbers = [];
   calculatorObject.secondNumbers = [];
@@ -333,35 +338,84 @@ function removeLeadingZeroFromNonZeroNumbers() {
   }
 }
 
-function reduceArray(whichArray) {
-  return calculatorObject[whichArray].reduce((accumulator, currentValue) => accumulator + currentValue, "")
+function reduceArray(array) {
+  return array.reduce((accumulator, currentValue) => accumulator + currentValue, "")
+}
+
+function checkNumberOverflow(whichArray, maxDigits) {
+  let overflowResult;
+  if (
+    calculated &&
+    calculatorObject[whichArray].length > maxDigits
+  ) {
+    // Exceeded max digits, use exponential notation
+    overflowResult = convertToExponentialFormat(
+      parseFloat(
+        reduceArray(calculatorObject[whichArray])
+      )
+    );
+  } else {
+    // Not calculated, simply reduce the array
+    overflowResult = reduceArray(calculatorObject.firstNumbers);
+  }
+  return overflowResult;
+}
+
+function convertToExponentialFormat(number) {
+  let expNumber = number.toExponential();
+  const numberDigits = expNumber.split("e")[0];
+  const expDigits = expNumber.split("e")[1].slice(1);
+  const expDigitsNotation = expNumber.split("e")[1][0]; // "+" (positive) or "-" (negative)
+  const expDigitsLength = expDigits.toString().length;
+  const decimalOffset = expDigitsNotation === "-" ? 5 : 6;
+  if (expDigits !== "0") {
+    // parseFloat twice in case there are redundant zeroes
+    // For example, there is a case when we have parseFloat("2.19999999").toFixed(5)
+    // gives us 2.20000 where the zeroes are redundant
+    expNumber = `${
+      parseFloat(
+        parseFloat(numberDigits.slice(0, decimalOffset)).
+          toFixed(decimalOffset - expDigitsLength)
+      )}e${
+        expDigitsNotation === '-' ?
+        expDigitsNotation : "" // Remove "+"
+      }${expDigits}`;
+  } else {
+    // Use non-exponential format if e0 (basically the same as multiplying with 1)
+    expNumber = `${
+      parseFloat(
+        parseFloat(numberDigits.slice(0, decimalOffset)).
+          toFixed(decimalOffset - expDigitsLength)
+      )}`;
+  }
+  return expNumber;
 }
 
 function updateCalculatorDisplay() {
   // Store the display history first...
+  if (calculatorObject.firstNumbers.length !== 0) {
+    calculatorObject.displayCharacters = checkNumberOverflow("firstNumbers", 8);
+  }
   if (calculatorObject.operator !== "") {
     switch(calculatorObject.operator) {
       case "add":
-        calculatorObject.displayCharacters = `${reduceArray("firstNumbers")} + `;
+        calculatorObject.displayCharacters = `${calculatorObject.displayCharacters} + `;
         break;
       case "subtract":
-        calculatorObject.displayCharacters = `${reduceArray("firstNumbers")} - `;
+        calculatorObject.displayCharacters = `${calculatorObject.displayCharacters} - `;
         break;
       case "multiply":
-        calculatorObject.displayCharacters = `${reduceArray("firstNumbers")} x `;
+        calculatorObject.displayCharacters = `${calculatorObject.displayCharacters} x `;
         break;
       case "divide":
-        calculatorObject.displayCharacters = `${reduceArray("firstNumbers")} / `;
+        calculatorObject.displayCharacters = `${calculatorObject.displayCharacters} / `;
         break;
     }
-  } else {
-    calculatorObject.displayCharacters = reduceArray("firstNumbers");
   }
-  if (
-    pushTo === "secondNumbers" &&
-    calculatorObject.secondNumbers.length !== 0
-  ) {
-    calculatorObject.displayCharacters = `${calculatorObject.displayCharacters}${reduceArray("secondNumbers")}`;
+  if (calculatorObject.secondNumbers.length !== 0) {
+    calculatorObject.displayCharacters = `
+      ${calculatorObject.displayCharacters}
+      ${reduceArray(calculatorObject.secondNumbers)}`;
   }
 
   // Then update the display
@@ -450,6 +504,7 @@ function operate(operator, firstNumber, secondNumber) {
       console.log("Unknown button ID");
       break;
   }
+  calculated = true;
   return result;
 }
 // ====================== Mathematical functions and operations ======================

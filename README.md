@@ -22,4 +22,6 @@ Users can choose to click on buttons or typing with keyboard when on desktop. To
 # Known Issues
 - Tap and holding the `⌫` button in mobile devices won't work the same as desktop would do (it prompts to copy the `⌫` character on the button).  
 [<img src="./docs/images/AC_button.jpg" alt="tap_and_hold_ac_mobile" width="240"/>](./docs/images/AC_button.jpg)
-- Display overflow when calculating with long digits.
+- Unexpected behavior when deleting number with exponential notation. For example, if we have a number `1.047e-17` and we press the `⌫` button, we should get `1.047e-16` instead of `1.047e-1`.  
+[<img src="./docs/images/Original.png" alt="original_digits" width="240"/>](./docs/images/Original.png)  
+[<img src="./docs/images/After_delete.png" alt="digits_after_delete" width="240"/>](./docs/images/After_delete.png)
