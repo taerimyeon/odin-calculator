@@ -43,7 +43,7 @@ function switchCaseKeyPress(clickedButtonId) {
   switch (clickedButtonId) {
     case "decimal":
       if (!divideByZeroError) {
-        if (!isDecimalPointExist()) {
+        if (!isDecimalPointExist(calculatorObject[pushTo])) {
           if (calculatorObject[pushTo].length === 0) {
             // Put leading zero if array is empty
             calculatorObject[pushTo].push("0");
@@ -56,7 +56,7 @@ function switchCaseKeyPress(clickedButtonId) {
       }
       break;
     case "zero":
-      if (!isDecimalPointExist()) {
+      if (!isDecimalPointExist(calculatorObject[pushTo])) {
         if (calculatorObject[pushTo][0] !== "0") calculatorObject[pushTo].push("0");
       } else {
         calculatorObject[pushTo].push("0");
@@ -112,7 +112,7 @@ function switchCaseKeyPress(clickedButtonId) {
       console.log("Unknown button ID");
       break;
   }
-  if (!isDecimalPointExist()) {
+  if (!isDecimalPointExist(calculatorObject[pushTo])) {
     if (calculatorObject[pushTo][0] !== "0") buttonClearComponent.textContent = "\u232B";
   } else {
     buttonClearComponent.textContent = "\u232B";
@@ -195,11 +195,11 @@ function switchCaseOperatorKeyPress(clickedButtonId) {
           secondNumber = parseFloat(reduceArray(calculatorObject.secondNumbers));
           operate(calculatorObject.operator, firstNumber, secondNumber);
           calculatorObject.operator = "";
-          finishCalculation = true;
           if (!divideByZeroError) {
             // Second re-check because the calculation is performed before divideByZeroError is changed
             updateCalculatorDisplay();
           }
+          finishCalculation = true;
         }
       }
       break;
@@ -220,21 +220,55 @@ function switchCaseSpecialKeyPress(clickedButtonId) {
     case "clear":
       if (!divideByZeroError) {
         if (calculatorObject[pushTo].length > 0) {
-          if (isNegativeExist() && calculatorObject[pushTo].length === 2) {
+          if (
+            isNegativeExist(calculatorObject[pushTo]) &&
+            calculatorObject[pushTo].length === 2
+          ) {
             calculatorObject[pushTo] = [];
+          } else if (isExponentialExist(calculatorObject[pushTo])) {
+            let splitExponential = reduceArray(calculatorObject[pushTo]).split("e");
+            let exponentialSign = splitExponential[1][0];
+            let exponentialAmount = parseInt(splitExponential[1].slice(1)) - 1;
+            if (exponentialSign === "+" && exponentialAmount === 20) {
+              // Based on experiment, 20 is the max range in array format that does not have 'e'
+              let adjustResult = splitExponential[0].split(".");
+              if (adjustResult.length === 2) { // Decimal number in front of 'e'
+                let multiplier = isNegativeExist(calculatorObject[pushTo]) ? 22 : 21;
+                adjustResult = `${adjustResult[0]}${adjustResult[1]}`;
+                adjustResult = parseInt(adjustResult)*(10**(multiplier-adjustResult.length));
+              } else { // Just in case we have non-decimal number in front of 'e'
+                adjustResult = `${parseInt(adjustResult[0])*(10**20)}`;
+              }
+              calculatorObject[pushTo] = `${adjustResult}`.split("");
+            } else if (exponentialSign === "+" && exponentialAmount > 20) {
+              calculatorObject[pushTo] = `${splitExponential[0]}e${exponentialSign}${exponentialAmount}`.split("");
+            }
+            if (exponentialSign === "-" && exponentialAmount === 6) {
+              // Based on experiment, -6 is the min range in array format that does not have 'e'
+              let adjustResult = splitExponential[0].split(".")
+              if (adjustResult.length === 2) { // Decimal number in front of 'e'
+                adjustResult = parseFloat(`${adjustResult[0]}.${adjustResult[1]}`)*(10**(parseInt(exponentialAmount)*-1));
+                adjustResult = `${adjustResult}`.slice(0, 9); // If length is still > 8 after division
+              } else { // Just in case we have non-decimal number in front of 'e'
+                adjustResult = parseFloat(`${adjustResult[0]}`)*(10**(parseInt(exponentialAmount)*-1));
+              }
+              calculatorObject[pushTo] = `${adjustResult}`.split("");
+            } else if (exponentialSign === "-" && exponentialAmount !== 6) {
+              calculatorObject[pushTo] = `${splitExponential[0]}e${exponentialSign}${exponentialAmount}`.split("");
+            }
           } else {
             calculatorObject[pushTo].splice(-1);
           }
-          updateCalculatorDisplay();
-        } else {
-          if (
-            pushTo === "secondNumbers" &&
-            calculatorObject.secondNumbers.length === 0
-          ) {
-            calculatorObject.operator = "";
-            togglePushTo();
-            updateCalculatorDisplay();
-          }
+        }
+        if (isAllZero(reduceArray(calculatorObject[pushTo]))) {
+          calculatorObject[pushTo] = [];
+        }
+        if (
+          pushTo === "secondNumbers" &&
+          calculatorObject.secondNumbers.length === 0
+        ) {
+          calculatorObject.operator = "";
+          togglePushTo();
         }
         if (
           calculatorObject.firstNumbers.length === 0 &&
@@ -245,20 +279,21 @@ function switchCaseSpecialKeyPress(clickedButtonId) {
       } else {
         reinitializeVariables();
       }
+      updateCalculatorDisplay();
       break;
     case "plus_minus":
       if (!divideByZeroError) {
         if (
           calculatorObject[pushTo].length > 0
         ) {
-          if (isNegativeExist()) {
+          if (isNegativeExist(calculatorObject[pushTo])) {
             calculatorObject[pushTo].shift();
             updateCalculatorDisplay();
           } else {
             if (
               (
                 calculatorObject[pushTo][0] === "0" &&
-                isDecimalPointExist() &&
+                isDecimalPointExist(calculatorObject[pushTo]) &&
                 calculatorObject[pushTo].length > 2
               ) ||
               (
@@ -315,12 +350,24 @@ function togglePushTo() {
   pushTo === "firstNumbers" ? pushTo = "secondNumbers" : pushTo = "firstNumbers";
 }
 
-function isDecimalPointExist() {
-  return calculatorObject[pushTo].filter(item => item === ".").length !== 0;
+function isAllZero(array) {
+  for (let element of array) {
+    if (element === "." || element === "-") continue;
+    if (element !== "0") return false;
+  }
+  return true;
 }
 
-function isNegativeExist() {
-  return calculatorObject[pushTo].filter(item => item === "-").length !== 0;
+function isExponentialExist(array) {
+  return array.filter(item => item === "e").length !== 0;
+}
+
+function isDecimalPointExist(array) {
+  return array.filter(item => item === ".").length !== 0;
+}
+
+function isNegativeExist(array) {
+  return array.filter(item => item === "-").length !== 0;
 }
 
 // ================================ Display handlers =================================
@@ -331,7 +378,7 @@ function addLeadingZeroOnOperatorKeyPress() {
 function removeLeadingZeroFromNonZeroNumbers() {
   if (
     calculatorObject[pushTo].length > 0 &&
-    !isDecimalPointExist() &&
+    !isDecimalPointExist(calculatorObject[pushTo]) &&
     calculatorObject[pushTo][0] === "0"
   ) {
     calculatorObject[pushTo].pop();
@@ -346,7 +393,10 @@ function checkNumberOverflow(whichArray, maxDigits) {
   let overflowResult;
   if (
     calculated &&
-    calculatorObject[whichArray].length > maxDigits
+    (
+      calculatorObject[whichArray].length > maxDigits || 
+      isExponentialExist(calculatorObject[whichArray])
+    )
   ) {
     // Exceeded max digits, use exponential notation
     overflowResult = convertToExponentialFormat(
@@ -413,13 +463,14 @@ function updateCalculatorDisplay() {
     }
   }
   if (calculatorObject.secondNumbers.length !== 0) {
-    calculatorObject.displayCharacters = `
-      ${calculatorObject.displayCharacters}
-      ${reduceArray(calculatorObject.secondNumbers)}`;
+    calculatorObject.displayCharacters = `${calculatorObject.displayCharacters}${reduceArray(calculatorObject.secondNumbers)}`;
   }
 
   // Then update the display
-  numberDisplayContainer.textContent = calculatorObject.displayCharacters;
+  numberDisplayContainer.textContent = 
+    calculatorObject.displayCharacters === "" ?
+      "0" :
+      calculatorObject.displayCharacters;
 }
 // ================================ Display handlers =================================
 
@@ -623,7 +674,7 @@ document.addEventListener("DOMContentLoaded", function() {
       highlightKeyPress(buttonClearComponent);
       switchCaseSpecialKeyPress("clear");
     } else {
-      console.log("Unsupported key")
+      console.log("Unsupported key");
     }
   })
 });
